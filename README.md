@@ -10,10 +10,10 @@ vue3 + googleMap + markerWithLabel
 
 
 **注意事项:**
-1. 本仓库代码仅供个人学习vue3语法，不建议商用;  
-2. 在SPA模式下，项目内google地图始终共享同一个实例，类似于单例模式；不支持多地图同时展示;  
-3. 已内置MarkerWithLabel组件，[相关Api](https://github.com/jesstelford/node-MarkerWithLabel);  
-4. 用例见example文件夹
+**本仓库代码仅供个人学习vue3语法，不建议商用;**  
+**在SPA模式下，项目内google地图始终共享同一个实例，类似于单例模式；不支持多地图同时展示;**  
+**已内置MarkerWithLabel组件，[相关Api](https://github.com/jesstelford/node-MarkerWithLabel);**  
+**用例见example文件夹**
 
 
 #### 本地运行example
