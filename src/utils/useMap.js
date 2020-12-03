@@ -1,9 +1,8 @@
-import { ref, markRaw } from 'vue'
+import { ref, reactive } from 'vue'
 
 const map = ref(null)
 const api = ref(null)
-const markerArray = markRaw({})
 
 export const useMap = () => {
-  return { map, api, markerArray }
+  return { map, api }
 }

@@ -1,8 +1,13 @@
 <template>
   <div>
     <h1 style="text-align: center">仅支持展示单地图</h1>
-    <div>
+    <div style="padding: 10px 0">
+      <button type="button" style="margin-right: 10px" @click="toggleMap">toggle map</button>
+      <button type="button" @click="resetMap">reset map</button>
+    </div>
+    <div v-if="showMap">
       <GoogleMap
+        ref="mapRef"
         api-key=""
         libraries="places"
         language="en"
@@ -30,7 +35,7 @@
         </MarkerWithLabel>
         <Polyline :options="item" :index="index" v-for="(item, index) in poyline" :key="index"/>
         <CustomControl class="bg-box"  position="LEFT_CENTER" :index="0">
-          <span>自定义组件</span>
+          <span>自定义组件{{count}}</span>
         </CustomControl>
       </GoogleMap>
     </div>
@@ -44,8 +49,11 @@
   export default {
     name: '_example',
     setup (props) {
+      const mapRef = ref(null)
       const marker = ref([])
       const poyline = ref([])
+      const showMap = ref(true)
+      const count = ref(0)
 
       const onMapReady = ({ api, map }) => {
         poyline.value = [
@@ -93,11 +101,23 @@
       }
 
       return {
+        mapRef,
         marker,
         poyline,
+        showMap,
+        count,
         onMapReady,
         handleClick (el, _marker, index) {
           marker.value[index].showInfoWindow = true
+        },
+        toggleMap(){
+          showMap.value = !showMap.value
+          if(showMap.value){
+            count.value += 1
+          }
+        },
+        resetMap(){
+          mapRef.value.resetMap()
         },
         handleClose () {
           marker.value = []

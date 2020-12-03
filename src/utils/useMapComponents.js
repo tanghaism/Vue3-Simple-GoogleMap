@@ -10,31 +10,31 @@ export const useSetupMapComponent = (
 ) => {
   const component = ref(null)
   let _component = null
-  const { map, api, markerArray } = useMap()
+  const { map, api } = useMap()
 
   if (map.value && api.value) {
-    component.value = _component = new api.value[componentName]({
+    component.value = _component = new window.$mapApi[componentName]({
       ...toRaw(options),
-      map: map.value
+      map: window.$mapInstance
     })
 
     events.forEach(event => {
       // eslint-disable-next-line no-unused-expressions
       _component?.addListener(event, (el) => emit(event, el, _component, index))
     })
-    if (markerArray[componentName]) {
-      markerArray[componentName].push(_component)
+    if (window.$markerArray[componentName]) {
+      window.$markerArray[componentName].push(_component)
     } else {
-      markerArray[componentName] = [_component]
+      window.$markerArray[componentName] = [_component]
     }
   }
 
   onBeforeUnmount(() => {
     if (_component) {
       // eslint-disable-next-line no-unused-expressions
-      api.value?.event.clearInstanceListeners(_component)
+      window.$mapApi?.event.clearInstanceListeners(_component)
       _component.setMap(null)
-      markerArray[componentName] && markerArray[componentName].length > 0 && markerArray[componentName].splice(index, 1)
+      window.$markerArray[componentName] && window.$markerArray[componentName].length > 0 && window.$markerArray[componentName].splice(index, 1)
     }
   })
 

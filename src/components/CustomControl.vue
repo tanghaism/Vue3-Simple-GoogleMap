@@ -29,7 +29,16 @@ export default defineComponent({
         if (controlRef.value) {
           map.value.controls[api.value.ControlPosition[props.position]].push(controlRef.value)
           if (trigger === 'watch') {
-            controlRef.value.parentNode.removeChild(controlRef.value)
+            controlRef.value.parentNode && controlRef.value.parentNode.removeChild(controlRef.value)
+          }
+          const customControl = {
+            target: map.value.controls[api.value.ControlPosition[props.position]],
+            index: props.index
+          }
+          if(window.$markerArray.customControl){
+            window.$markerArray.customControl.push(customControl)
+          }else{
+            window.$markerArray.customControl = [customControl]
           }
         }
       }

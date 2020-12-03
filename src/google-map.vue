@@ -58,8 +58,7 @@
     setup (props, { emit }) {
       const mapRef = ref(null)
       const ready = ref(false)
-      let {map, api, markerArray} = useMap()
-      let mapDom = null
+      let {map, api} = useMap()
 
       const resolveOptions = () => {
         const opts = {
@@ -134,22 +133,22 @@
       onBeforeUnmount(() => {
         if (map.value) {
           resetMap()
-          api.value?.event.clearInstanceListeners(map.value)
+          window.$mapApi?.event.clearInstanceListeners(window.$mapInstance)
         }
       })
 
       const resetMap = () => {
-        if (map.value) {
-          Object.keys(markerArray).forEach(componentsKey => {
-            for (const marker of markerArray[componentsKey]) {
+        if (window.$mapInstance) {
+          Object.keys(window.$markerArray).forEach(componentsKey => {
+            for (const marker of window.$markerArray[componentsKey]) {
               try {
-                api.value?.event.clearInstanceListeners(marker)
+                window.$mapApi.event.clearInstanceListeners(marker)
                 marker.setMap(null)
               } catch (e) {
                 console.warn(e)
               }
             }
-            delete markerArray[componentsKey]
+            delete window.$markerArray[componentsKey]
           })
         }
       }
@@ -158,25 +157,31 @@
       // and would error out in a node env (i.e. vitepress/vuepress SSR)
       if (typeof window !== 'undefined') {
         loadNow('places', props.apiKey).then(({ maps }) => {
-          const dom = document.querySelector('#google-map')
-          if (map.value && mapDom) {
-            dom.appendChild(mapDom)
-            map.value.setOptions(resolveOptions())
+          if (window.$mapInstance && window.$mapDom) {
+            const dom = document.querySelector('#google-map')
+            dom.appendChild(window.$mapDom)
+            window.$mapInstance.setOptions(resolveOptions())
+            emit('map-ready', { map: window.$mapInstance, api: window.$mapApi })
             console.log('复用地图实例')
           } else {
-            const { Map } = (api.value = { ...maps })
-            map.value = new Map(dom, resolveOptions())
-            mapDom = document.querySelector('#google-map').childNodes[0]
-            mapDom.style.overflow = 'hidden'
-            markerArray = {}
+            const { Map } = (window.$mapApi = { ...maps })
+            window.$mapInstance = new Map(document.querySelector('#google-map'), resolveOptions())
+            const dom = document.querySelector('#google-map').childNodes[0]
+            dom.style.overflow = 'hidden'
+            window.$mapDom = dom
+            window.$markerArray = {}
             console.log('地图初始化成功')
+            map.value = window.$mapInstance
+            api.value = window.$mapApi
 
             mapEvents.forEach(event => {
-              map.value?.addListener(event, () => emit(event))
+              // eslint-disable-next-line no-unused-expressions
+              window.$mapInstance?.addListener(event, () => emit(event))
             })
+
+            ready.value = true
+            emit('map-ready', { map: window.$mapInstance, api: window.$mapApi })
           }
-          ready.value = true
-          emit('map-ready', { map: map.value, api: api.value })
         })
       }
 
@@ -187,6 +192,7 @@
 
 <style scoped>
 #google-map{
+  position: relative;
   width: 100%;
 }
 </style>
