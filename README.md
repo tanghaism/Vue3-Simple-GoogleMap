@@ -1,4 +1,4 @@
-# vue3-simple-googlemap
+# vue3-single-googlemap
 vue3 + googleMap + markerWithLabel
 
 **特别鸣谢:**  
