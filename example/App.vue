@@ -158,6 +158,7 @@
 
       return {
         mapRef,
+        mapRef1,
         marker,
         marker1,
         poyline,
@@ -174,7 +175,8 @@
           }
         },
         resetMap(){
-          mapRef.value.resetMap()
+          mapRef.value?.resetMap()
+          mapRef1.value?.resetMap()
         },
         handleClose () {
           marker.value = []

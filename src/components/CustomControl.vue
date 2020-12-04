@@ -45,7 +45,9 @@ export default defineComponent({
             index = i
           }
         })
-        map.value.controls[api.value.ControlPosition[props.position]].removeAt(index)
+        if(map.value.controls[api.value.ControlPosition[props.position]].getAt(index)){
+          map.value.controls[api.value.ControlPosition[props.position]].removeAt(index)
+        }
       }
     }
 
