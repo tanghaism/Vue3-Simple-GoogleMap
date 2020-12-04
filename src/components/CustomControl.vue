@@ -31,15 +31,6 @@ export default defineComponent({
           if (trigger === 'watch') {
             controlRef.value.parentNode && controlRef.value.parentNode.removeChild(controlRef.value)
           }
-          const customControl = {
-            target: map.value.controls[api.value.ControlPosition[props.position]],
-            index: props.index
-          }
-          if(window.$markerArray.customControl){
-            window.$markerArray.customControl.push(customControl)
-          }else{
-            window.$markerArray.customControl = [customControl]
-          }
         }
       }
     }
@@ -54,7 +45,9 @@ export default defineComponent({
             index = i
           }
         })
-        map.value.controls[api.value.ControlPosition[props.position]].removeAt(index)
+        if(map.value.controls[api.value.ControlPosition[props.position]].getAt(index)){
+          map.value.controls[api.value.ControlPosition[props.position]].removeAt(index)
+        }
       }
     }
 

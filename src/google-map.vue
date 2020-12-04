@@ -132,12 +132,12 @@
 
       onBeforeUnmount(() => {
         if (map.value) {
-          resetMap()
+          // resetMap()
           window.$mapApi?.event.clearInstanceListeners(window.$mapInstance)
         }
       })
 
-      const resetMap = () => {
+      const resetMap = (clearAll = true) => {
         if (window.$mapInstance) {
           Object.keys(window.$markerArray).forEach(componentsKey => {
             for (const marker of window.$markerArray[componentsKey]) {
@@ -150,6 +150,11 @@
             }
             delete window.$markerArray[componentsKey]
           })
+          if(clearAll){
+            Object.keys(window.$mapApi.ControlPosition).forEach(position => {
+              window.$mapInstance.controls[window.$mapApi.ControlPosition[position]].clear()
+            })
+          }
         }
       }
 
