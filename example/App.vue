@@ -39,6 +39,36 @@
         </CustomControl>
       </GoogleMap>
     </div>
+    <div v-else>
+      <GoogleMap
+        ref="mapRef1"
+        api-key=""
+        libraries="places"
+        language="en"
+        v="3.41"
+        :center="{ lat: -37.846382, lng: 145.068663 }"
+        :zoom="11"
+        :disableDefaultUI="true"
+        :scrollwheel="true"
+        :zoomControl="true"
+        :scaleControl="false"
+        :rotateControl="false"
+        :panControl="false"
+        :mapTypeControl="false"
+        :streetViewControl="false"
+        :fullscreenControl="true"
+        @mapReady="onMapReady"
+        style="height: 600px">
+        <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker1" :key="index" >
+          <template #labelContent>
+            {{item.labelContent}}
+          </template>
+          <InfoWindow :options="item.infoWindow" :index="index" :show="item.showInfoWindow" @closeclick="item.showInfoWindow = false">
+            <span>{{item.infoWindow.content}}</span>
+          </InfoWindow>
+        </MarkerWithLabel>
+      </GoogleMap>
+    </div>
   </div>
 </template>
 
@@ -50,7 +80,9 @@
     name: '_example',
     setup (props) {
       const mapRef = ref(null)
+      const mapRef1 = ref(null)
       const marker = ref([])
+      const marker1 = ref([])
       const poyline = ref([])
       const showMap = ref(true)
       const count = ref(0)
@@ -98,11 +130,36 @@
             content: '这是infoWindow'
           }
         }]
+        marker1.value = [
+          {
+            icon: {
+              url: icon,
+              size: new api.Size(36, 36),
+              scaledSize: new api.Size(36, 36),
+              origin: new api.Point(0, 0),
+              anchor: new api.Point(18, 36)
+            },
+            position: new api.LatLng(-35.808585, 143.960489),
+            draggable: false,
+            raiseOnDrag: false,
+            labelContent: 'slot插槽marker',
+            map: map,
+            labelAnchor: new api.Point(60, 54),
+            labelClass: 'deliveryman-label',
+            labelInBackground: false,
+            showInfoWindow: false,
+            infoWindow: {
+              maxWidth: 200,
+              content: '这是infoWindow'
+            }
+          }
+        ]
       }
 
       return {
         mapRef,
         marker,
+        marker1,
         poyline,
         showMap,
         count,
