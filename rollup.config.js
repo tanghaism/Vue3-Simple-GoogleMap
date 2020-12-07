@@ -36,23 +36,37 @@ module.exports = [{
   // 配置打包出口
   // 分别打包两种模块类型 cjs 和 es
   // 路径使用 package.json 中配置的 main 和 module
-  output: {
-    exports: 'auto',
-    file: "dist/index.js",
-    format: 'es'
-  },
-  // [
-  // {
+  // output: {
   //   exports: 'auto',
-  //   file: 'dist/cjs/index.js',
-  //   format: 'cjs'
+  //   file: "dist/index.js",
+  //   name: "vue3SingleGooglemap",
+  //   format: 'es',
+  //   globals: {
+  //     vue: 'Vue'
+  //   }
+  //
   // },
-  // {
-  //   exports: 'auto',
-  //   file: "dist/es/index.js",
-  //   format: 'es'
-  // },
-  // ],
+  output:[
+    {
+      exports: 'auto',
+      file: 'dist/iife/index.js',
+      format: 'iife',
+      name: "vue3SingleGooglemap",
+        globals: {
+          vue: 'Vue'
+        }
+    },
+    {
+      exports: 'auto',
+      file: "dist/es/index.js",
+      format: 'es',
+      name: "vue3SingleGooglemap",
+      globals: {
+        vue: 'Vue'
+      }
+    },
+  ],
+
   // 配置插件
   plugins: plugins,
   //  外链

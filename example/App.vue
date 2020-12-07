@@ -73,7 +73,7 @@
 </template>
 
 <script>
-  import { GoogleMap, InfoWindow, Polyline, MarkerWithLabel, CustomControl } from '/d/index.js'
+  import { GoogleMap, InfoWindow, Polyline, MarkerWithLabel, CustomControl } from '/d/index'
   import icon from './marker-user.png'
   import { ref } from 'vue'
   export default {
