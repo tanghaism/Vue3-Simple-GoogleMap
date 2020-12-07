@@ -65,6 +65,33 @@ module.exports = [{
         vue: 'Vue'
       }
     },
+    {
+      exports: 'auto',
+      file: "dist/cjs/index.js",
+      format: 'cjs',
+      name: "vue3SingleGooglemap",
+      globals: {
+        vue: 'Vue'
+      }
+    },
+    {
+      exports: 'auto',
+      file: "dist/amd/index.js",
+      format: 'amd',
+      name: "vue3SingleGooglemap",
+      globals: {
+        vue: 'Vue'
+      }
+    },
+    {
+      exports: 'auto',
+      file: "dist/umd/index.js",
+      format: 'umd',
+      name: "vue3SingleGooglemap",
+      globals: {
+        vue: 'Vue'
+      }
+    },
   ],
 
   // 配置插件
