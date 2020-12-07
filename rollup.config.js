@@ -19,7 +19,7 @@ const plugins = [
   }),
   json(),
   babel({
-    exclude: 'node_modules/**' // 只编译我们的源代码
+    exclude: 'node_modules/**' // 只编译源代码
   }),
   nodeResolve(),
   postcss({
@@ -37,18 +37,6 @@ module.exports = [{
   // 打包入口：拼接绝对路径
   input: 'src/index.js',
   // 配置打包出口
-  // 分别打包两种模块类型 cjs 和 es
-  // 路径使用 package.json 中配置的 main 和 module
-  // output: {
-  //   exports: 'auto',
-  //   file: "dist/index.js",
-  //   name: "vue3SingleGooglemap",
-  //   format: 'es',
-  //   globals: {
-  //     vue: 'Vue'
-  //   }
-  //
-  // },
   output:[
     {
       exports: 'auto',
