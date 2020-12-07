@@ -1,8 +1,9 @@
 import vue from 'rollup-plugin-vue'
 import { terser } from 'rollup-plugin-terser'
 import json from '@rollup/plugin-json'
+import babel from 'rollup-plugin-babel'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs';
+import commonjs from 'rollup-plugin-commonjs'
 import postcss from 'rollup-plugin-postcss'
 
 // 判断环境，生产环境会开启代码压缩
@@ -17,8 +18,10 @@ const plugins = [
     compileTemplate: true
   }),
   json(),
+  babel({
+    exclude: 'node_modules/**' // 只编译我们的源代码
+  }),
   nodeResolve(),
-  commonjs(),
   postcss({
     // 把 css 插入到 style 中
     inject: true,
@@ -28,7 +31,7 @@ const plugins = [
 ]
 
 // 如果不是开发环境，开启压缩
-isDev || plugins.push(terser())
+isDev || plugins.push(terser(), commonjs())
 
 module.exports = [{
   // 打包入口：拼接绝对路径
