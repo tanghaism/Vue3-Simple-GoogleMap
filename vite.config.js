@@ -1,8 +1,8 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  root: './example',
+  root: "./example",
   alias: {
-    '/@/': path.resolve(__dirname, 'src'),
-  }
+    "/@/": path.resolve(__dirname, "src"),
+  },
 };
