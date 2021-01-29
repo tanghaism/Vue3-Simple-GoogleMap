@@ -106,3 +106,4 @@ node_modules
 .DS_Store
 *.local
 *.lock
+.idea/

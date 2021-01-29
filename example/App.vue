@@ -1,17 +1,15 @@
 <template>
   <div>
-    <h1 style="text-align: center">仅支持展示单地图</h1>
+    <h1 style="text-align: center">案例1：单例模式</h1>
+    <p style="text-align: center">（全局唯一地图实例,仅支持展示一个地图）</p>
     <div style="padding: 10px 0">
       <button type="button" style="margin-right: 10px" @click="toggleMap">toggle map</button>
-      <button type="button" @click="resetMap">reset map</button>
+      <button type="button" @click="resetMap(showMap ? mapRef : mapRef1)">reset map</button>
     </div>
     <div v-if="showMap">
       <GoogleMap
         ref="mapRef"
         api-key=""
-        libraries="places"
-        language="en"
-        v="3.41"
         :center="{ lat: -37.846382, lng: 145.068663 }"
         :zoom="11"
         :disableDefaultUI="true"
@@ -43,9 +41,6 @@
       <GoogleMap
         ref="mapRef1"
         api-key=""
-        libraries="places"
-        language="en"
-        v="3.41"
         :center="{ lat: -37.846382, lng: 145.068663 }"
         :zoom="11"
         :disableDefaultUI="true"
@@ -57,7 +52,6 @@
         :mapTypeControl="false"
         :streetViewControl="false"
         :fullscreenControl="true"
-        @mapReady="onMapReady"
         style="height: 600px">
         <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker1" :key="index" >
           <template #labelContent>
@@ -69,11 +63,78 @@
         </MarkerWithLabel>
       </GoogleMap>
     </div>
+
+    <h1 style="text-align: center">案例2：多地图同时展示</h1>
+    <p style="text-align: center">（newMap传true则会创建新的地图实例，不影响全局唯一地图实例，可同时展示多个地图，同时生成多个实例）</p>
+    <p style="text-align: center">（newMap为true的地图resetMap方法无效，如果需要清空地图上的marker，只需要把传入地图的marker数组清空即可）</p>
+    <p style="text-align: center">（移除自定义组件的方法见google地图Api）</p>
+    <div style="position: relative;overflow: hidden">
+      <div style="width: 48%;float: left">
+        <GoogleMap
+          ref="mapRef2"
+          api-key=""
+          :newMap="true"
+          :center="{ lat: -37.846382, lng: 145.068663 }"
+          :zoom="11"
+          :disableDefaultUI="true"
+          :scrollwheel="true"
+          :zoomControl="true"
+          :scaleControl="false"
+          :rotateControl="false"
+          :panControl="false"
+          :mapTypeControl="false"
+          :streetViewControl="false"
+          :fullscreenControl="true"
+          @mapReady="onMapReady"
+          style="height: 600px">
+          <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker" :key="index" >
+            <template #labelContent>
+              {{item.labelContent}}
+            </template>
+            <InfoWindow :options="item.infoWindow" :index="index" :show="item.showInfoWindow" @closeclick="item.showInfoWindow = false">
+              <span>{{item.infoWindow.content}}</span>
+            </InfoWindow>
+          </MarkerWithLabel>
+          <Polyline :options="item" :index="index" v-for="(item, index) in poyline" :key="index"/>
+          <CustomControl class="bg-box"  position="LEFT_CENTER" :index="0">
+            <span>多地图同时展示</span>
+          </CustomControl>
+        </GoogleMap>
+      </div>
+      <div style="width: 48%;float: right">
+        <GoogleMap
+          ref="mapRef3"
+          api-key=""
+          :newMap="true"
+          :center="{ lat: -37.846382, lng: 145.068663 }"
+          :zoom="11"
+          :disableDefaultUI="true"
+          :scrollwheel="true"
+          :zoomControl="true"
+          :scaleControl="false"
+          :rotateControl="false"
+          :panControl="false"
+          :mapTypeControl="false"
+          :streetViewControl="false"
+          :fullscreenControl="true"
+          style="height: 600px">
+          <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker1" :key="index" >
+            <template #labelContent>
+              {{item.labelContent}}
+            </template>
+            <InfoWindow :options="item.infoWindow" :index="index" :show="item.showInfoWindow" @closeclick="item.showInfoWindow = false">
+              <span>{{item.infoWindow.content}}</span>
+            </InfoWindow>
+          </MarkerWithLabel>
+        </GoogleMap>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
-  import { GoogleMap, InfoWindow, Polyline, MarkerWithLabel, CustomControl } from '/d/index'
+  import { GoogleMap, InfoWindow, Polyline, MarkerWithLabel, CustomControl } from '/@/index'
   import icon from './marker-user.png'
   import { ref } from 'vue'
   export default {
@@ -81,6 +142,8 @@
     setup (props) {
       const mapRef = ref(null)
       const mapRef1 = ref(null)
+      const mapRef2 = ref(null)
+      const mapRef3 = ref(null)
       const marker = ref([])
       const marker1 = ref([])
       const poyline = ref([])
@@ -139,10 +202,10 @@
               origin: new api.Point(0, 0),
               anchor: new api.Point(18, 36)
             },
-            position: new api.LatLng(-35.808585, 143.960489),
+            position: new api.LatLng(-37.808485, 144.962489),
             draggable: false,
             raiseOnDrag: false,
-            labelContent: 'slot插槽marker',
+            labelContent: '另一个地图',
             map: map,
             labelAnchor: new api.Point(60, 54),
             labelClass: 'deliveryman-label',
@@ -150,7 +213,7 @@
             showInfoWindow: false,
             infoWindow: {
               maxWidth: 200,
-              content: '这是infoWindow'
+              content: '这是infoWindow2'
             }
           }
         ]
@@ -161,6 +224,8 @@
         mapRef1,
         marker,
         marker1,
+        mapRef2,
+        mapRef3,
         poyline,
         showMap,
         count,
@@ -174,12 +239,8 @@
             count.value += 1
           }
         },
-        resetMap(){
-          mapRef.value?.resetMap()
-          mapRef1.value?.resetMap()
-        },
-        handleClose () {
-          marker.value = []
+        resetMap(_mapRef){
+          _mapRef.resetMap()
         }
       }
     },

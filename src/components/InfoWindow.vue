@@ -27,9 +27,9 @@
     setup (props, context) {
       const { options, show, index } = toRefs(props)
       const $marker = inject('$marker')
-
-      const map = ref(null)
-      const api = ref(null)
+      const newMap = inject('newMap');
+      const map = inject('map', ref(null));
+      const api = inject('api', ref(null));
       const marker = ref(null)
       const infoWindow = ref(null)
       let _component = null
@@ -63,13 +63,13 @@
       })
 
       const createInfoWindow = (trigger) => {
-        if (window.$mapInstance && window.$mapApi && $marker.marker) {
+        const _instance = newMap ? map.value : window.$mapInstance;
+        const _api = newMap ? api.value : window.$mapApi;
+        if (_instance && _api && $marker.marker) {
           closeInfoWindow()
-          map.value = window.$mapInstance
-          api.value = window.$mapApi
           marker.value = toRaw($marker.marker)
           const value = Object.assign(Object.assign({}, options.value, { content: infoWindowRef.value, map: map.value }))
-          infoWindow.value = _component = new window.$mapApi.InfoWindow(value)
+          infoWindow.value = _component = new _api.InfoWindow(value)
           infoWindowEvents.forEach(event => {
             _component && _component.addListener(event, (el) => context.emit(event, el, infoWindow.value, index.value))
           })
@@ -86,7 +86,7 @@
       }
 
       const closeInfoWindow = () => {
-        infoWindow.value && infoWindow.value.close()
+        infoWindow.value && infoWindow.value.close();
         context.emit('close')
       }
 

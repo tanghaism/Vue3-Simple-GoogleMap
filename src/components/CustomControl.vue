@@ -3,8 +3,7 @@
 </template>
 
 <script>
-import { defineComponent, watch, ref, onMounted, onBeforeUnmount } from 'vue'
-import { useMap } from '../utils/useMap'
+import { defineComponent, watch, ref, inject, onMounted, onBeforeUnmount } from 'vue'
 export default defineComponent({
   props: {
     position: {
@@ -18,7 +17,8 @@ export default defineComponent({
     }
   },
   setup (props) {
-    const { map, api } = useMap()
+    const map = inject('map', ref(null));
+    const api = inject('api', ref(null));
     const controlRef = ref(null)
 
     const createControl = (trigger) => {
@@ -28,9 +28,10 @@ export default defineComponent({
         }
         if (controlRef.value) {
           map.value.controls[api.value.ControlPosition[props.position]].push(controlRef.value)
-          if (trigger === 'watch') {
-            controlRef.value.parentNode && controlRef.value.parentNode.removeChild(controlRef.value)
-          }
+          // if (trigger === 'watch') {
+          //   console.log(controlRef.value.parentNode)
+          //   controlRef.value.parentNode && controlRef.value.parentNode.removeChild(controlRef.value)
+          // }
         }
       }
     }

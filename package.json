@@ -1,14 +1,14 @@
 {
-  "name": "template",
-  "version": "0.0.0",
+  "name": "vue3-single-map",
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite",
     "build": "cross-env NODE_ENV=production rollup -c"
   },
   "dependencies": {
-    "connect-google-maps": "^0.2.1",
+    "@googlemaps/js-api-loader": "^1.11.1",
     "markerwithlabel": "^2.0.2",
-    "vue": "^3.0.4"
+    "vue": "^3.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

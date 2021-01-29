@@ -1,5 +1,5 @@
 <template>
-  <div ref="mapRef" id="google-map">
+  <div ref="mapRef" v-bind="$attrs" class="map" :id="!newMap ? 'google-map' : ''">
     <div>
       <slot />
     </div>
@@ -7,15 +7,22 @@
 </template>
 
 <script>
-import { ref, onBeforeUnmount } from "vue";
-import { loadNow } from "connect-google-maps";
+import { ref, provide, onBeforeUnmount } from "vue";
+import { Loader } from '@googlemaps/js-api-loader';
 import { mapEvents } from "./utils/events";
-import { useMap } from "./utils/useMap";
 
 export default {
   name: "google-map",
+  emits: [...mapEvents, 'mapReady'],
   props: {
     apiKey: String,
+    version: String,
+    libraries: [String ,Array],
+    language: String,
+    newMap: {
+      type: Boolean,
+      default: false
+    },
     backgroundColor: String,
     center: Object,
     clickableIcons: { type: Boolean, default: undefined },
@@ -58,7 +65,11 @@ export default {
   setup(props, { emit }) {
     const mapRef = ref(null);
     const ready = ref(false);
-    let { map, api } = useMap();
+    const map = ref(null);
+    const api = ref(null);
+    provide('map', map);
+    provide('api', api);
+    provide('newMap', props.newMap)
 
     const resolveOptions = () => {
       const opts = {
@@ -132,28 +143,33 @@ export default {
 
     onBeforeUnmount(() => {
       if (map.value) {
-        // resetMap()
-        window.$mapApi?.event.clearInstanceListeners(window.$mapInstance);
+        if(!props.newMap){
+          window.$mapApi?.event.clearInstanceListeners(window.$mapInstance);
+        }else{
+          api.value?.event.clearInstanceListeners(map.value);
+        }
       }
     });
 
     const resetMap = (clearAll = true) => {
-      if (window.$mapInstance) {
-        Object.keys(window.$markerArray).forEach((componentsKey) => {
-          for (const marker of window.$markerArray[componentsKey]) {
-            try {
-              window.$mapApi.event.clearInstanceListeners(marker);
-              marker.setMap(null);
-            } catch (e) {
-              console.warn(e);
+      if(!props.newMap){
+        if (window.$mapInstance) {
+          Object.keys(window.$markerArray).forEach((componentsKey) => {
+            for (const marker of window.$markerArray[componentsKey]) {
+              try {
+                window.$mapApi.event.clearInstanceListeners(marker);
+                marker.setMap(null);
+              } catch (e) {
+                console.warn(e);
+              }
             }
-          }
-          delete window.$markerArray[componentsKey];
-        });
-        if (clearAll) {
-          Object.keys(window.$mapApi.ControlPosition).forEach((position) => {
-            window.$mapInstance.controls[window.$mapApi.ControlPosition[position]].clear();
+            delete window.$markerArray[componentsKey];
           });
+          if (clearAll) {
+            Object.keys(window.$mapApi.ControlPosition).forEach((position) => {
+              window.$mapInstance.controls[window.$mapApi.ControlPosition[position]].clear();
+            });
+          }
         }
       }
     };
@@ -161,31 +177,54 @@ export default {
     // Only run this in a browser env since it needs to use the `document` object
     // and would error out in a node env (i.e. vitepress/vuepress SSR)
     if (typeof window !== "undefined") {
-      loadNow("places", props.apiKey).then(({ maps }) => {
-        if (window.$mapInstance && window.$mapDom) {
+      const loader = new Loader({
+        apiKey: props.apiKey,
+        version: '3.41',
+        libraries: ['places'],
+        language: props.language || 'en'
+      });
+
+      loader.load().then(() => {
+        // 如果已存在地图实例且不生成新实例，则仍然操作单例
+        if (window.$mapInstance && window.$mapDom && !props.newMap) {
           const dom = document.querySelector("#google-map");
           dom.appendChild(window.$mapDom);
           window.$mapInstance.setOptions(resolveOptions());
-          emit("map-ready", { map: window.$mapInstance, api: window.$mapApi });
-          console.log("复用地图实例");
-        } else {
-          const { Map } = (window.$mapApi = { ...maps });
-          window.$mapInstance = new Map(document.querySelector("#google-map"), resolveOptions());
-          const dom = document.querySelector("#google-map").childNodes[0];
-          dom.style.overflow = "hidden";
-          window.$mapDom = dom;
-          window.$markerArray = {};
-          console.log("地图初始化成功");
           map.value = window.$mapInstance;
           api.value = window.$mapApi;
+          emit("mapReady", { map: window.$mapInstance, api: window.$mapApi });
+          console.log("复用地图实例");
+        } else {
+          // 如果不生成新实例，则生成新的单例
+          if(!props.newMap){
+            const { Map } = (window.$mapApi = google.maps);
+            window.$mapInstance = new Map(document.querySelector("#google-map"), resolveOptions());
+            const dom = document.querySelector("#google-map").childNodes[0];
+            dom.style.overflow = "hidden";
+            window.$mapDom = dom;
+            window.$markerArray = {};
+            console.log("地图初始化成功");
+            map.value = window.$mapInstance;
+            api.value = window.$mapApi;
+            mapEvents.forEach((event) => {
+              window.$mapInstance?.addListener(event, () => emit(event));
+            });
 
-          mapEvents.forEach((event) => {
-            // eslint-disable-next-line no-unused-expressions
-            window.$mapInstance?.addListener(event, () => emit(event));
-          });
+            ready.value = true;
+            emit("mapReady", { map: window.$mapInstance, api: window.$mapApi });
+          }else{
+            // 需要生成新的实例
+            const { Map } = (api.value = google.maps);
+            map.value = new Map(mapRef.value, resolveOptions());
+            console.log("地图初始化成功");
 
-          ready.value = true;
-          emit("map-ready", { map: window.$mapInstance, api: window.$mapApi });
+            mapEvents.forEach((event) => {
+              map.value?.addListener(event, () => emit(event));
+            });
+
+            ready.value = true;
+            emit("mapReady", { map: map.value, api: api.value });
+          }
         }
       });
     }
@@ -196,7 +235,7 @@ export default {
 </script>
 
 <style scoped>
-#google-map {
+.map {
   position: relative;
   width: 100%;
 }
