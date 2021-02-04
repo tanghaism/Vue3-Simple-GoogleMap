@@ -50,7 +50,6 @@
       <div style="width: 48%;float: left">
         <GoogleMap
           ref="mapRef2"
-          api-key=""
           :newMap="true"
           :center="{ lat: -37.846382, lng: 145.068663 }"
           @mapReady="onMapReady"
@@ -72,7 +71,6 @@
       <div style="width: 48%;float: right">
         <GoogleMap
           ref="mapRef3"
-          api-key=""
           :newMap="true"
           :center="{ lat: -37.846382, lng: 145.068663 }"
           style="height: 600px">

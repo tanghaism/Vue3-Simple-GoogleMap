@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { ref, provide, onBeforeUnmount } from "vue";
+import { ref, provide, onBeforeUnmount, onMounted } from "vue";
 import { Loader } from '@googlemaps/js-api-loader';
 import { mapEvents } from "./utils/events";
 
@@ -17,12 +17,12 @@ export default {
   props: {
     // 开启debug模式会导致apiKey失效，开启的好处是生成实例google不会扣费，但是部分功能不可用。建议本地开发时可以考虑开启。
     debug: Boolean,
-    // 全局单例地图实例key, 默认值$easiMapInstance，初始化全局单例模式之后，此值不可改变。
+    // 全局单例地图实例key, 默认值$simpleMapInstance，初始化全局单例模式之后，此值不可改变。
     // 如需要在业务组件内获取当前地图实例（单例或多例模式均可用），可监听map-ready事件: ({map, api}) => void
     // map为地图实例，api为google.map对象
     mapInstance: {
       type: String,
-      default: '$easiMapInstance'
+      default: '$simpleMapInstance'
     },
     height: {
       default: '600px',
@@ -150,7 +150,7 @@ export default {
         zoomControl: props.zoomControl,
         zoomControlOptions: props.zoomControlPosition
           ? {
-              position: window.$easiMapApi?.ControlPosition[props.zoomControlPosition],
+              position: window.$simpleMapApi?.ControlPosition[props.zoomControlPosition],
             }
           : {},
       };
@@ -164,8 +164,7 @@ export default {
     onBeforeUnmount(() => {
       if (map.value) {
         if(!props.newMap){
-          console.log()
-          window.$easiMapApi?.event.clearInstanceListeners(window[window.$easiMapInstanceKey]);
+          window.$simpleMapApi?.event.clearInstanceListeners(window[window.$simpleMapInstanceKey]);
         }else{
           api.value?.event.clearInstanceListeners(map.value);
         }
@@ -174,82 +173,85 @@ export default {
 
     const resetMap = (clearAll = true) => {
       if(!props.newMap){
-        if (window[window.$easiMapInstanceKey]) {
-          Object.keys(window.$easiMarkerArray).forEach((componentsKey) => {
-            for (const marker of window.$easiMarkerArray[componentsKey]) {
+        if (window[window.$simpleMapInstanceKey]) {
+          Object.keys(window.$simpleMarkerArray).forEach((componentsKey) => {
+            for (const marker of window.$simpleMarkerArray[componentsKey]) {
               try {
-                window.$easiMapApi.event.clearInstanceListeners(marker);
+                window.$simpleMapApi.event.clearInstanceListeners(marker);
                 marker.setMap(null);
               } catch (e) {
                 console.warn(e);
               }
             }
-            delete window.$easiMarkerArray[componentsKey];
+            delete window.$simpleMarkerArray[componentsKey];
           });
           if (clearAll) {
-            Object.keys(window.$easiMapApi.ControlPosition).forEach((position) => {
-              window[window.$easiMapInstanceKey].controls[window.$easiMapApi.ControlPosition[position]].clear();
+            Object.keys(window.$simpleMapApi.ControlPosition).forEach((position) => {
+              window[window.$simpleMapInstanceKey].controls[window.$simpleMapApi.ControlPosition[position]].clear();
             });
           }
         }
       }
     };
 
-    // Only run this in a browser env since it needs to use the `document` object
-    // and would error out in a node env (i.e. vitepress/vuepress SSR)
-    if (typeof window !== "undefined") {
-      const loader = new Loader({
-        apiKey: !props.debug ? props.apiKey : '',
-        version: props.version || '3.41',
-        libraries: props.libraries || ['places'],
-        language: props.language || 'en'
-      });
-
-      loader.load().then(() => {
-        // 如果已存在地图实例且不生成新实例，则仍然操作单例
-        if (window[window.$easiMapInstanceKey] && window.$easiMapDom && !props.newMap) {
-          const dom = document.querySelector("#google-map");
-          dom.appendChild(window.$easiMapDom);
-          window[window.$easiMapInstanceKey].setOptions(resolveOptions());
-          map.value = window[window.$easiMapInstanceKey];
-          api.value = window.$easiMapApi;
-          emit("mapReady", { map: window[window.$easiMapInstanceKey], api: window.$easiMapApi });
-          console.log("复用地图实例");
-        } else {
-          // 如果不生成新实例，则生成新的单例
-          if(!props.newMap){
-            window.$easiMapInstanceKey = props.mapInstance
-            const { Map } = (window.$easiMapApi = google.maps);
-            window[window.$easiMapInstanceKey] = new Map(document.querySelector("#google-map"), resolveOptions());
-            const dom = document.querySelector("#google-map").childNodes[0];
-            dom.style.overflow = "hidden";
-            window.$easiMapDom = dom;
-            window.$easiMarkerArray = {};
-            console.log("新单例地图初始化成功");
-            map.value = window[window.$easiMapInstanceKey];
-            api.value = window.$easiMapApi;
-            mapEvents.forEach((event) => {
-              window[window.$easiMapInstanceKey]?.addListener(event, () => emit(event));
-            });
-
-            ready.value = true;
-            emit("mapReady", { map: window[window.$easiMapInstanceKey], api: window.$easiMapApi });
-          }else{
-            // 需要生成新的实例
-            const { Map } = (api.value = google.maps);
-            map.value = new Map(mapRef.value, resolveOptions());
-            console.log("新地图初始化成功");
-
-            mapEvents.forEach((event) => {
-              map.value?.addListener(event, () => emit(event));
-            });
-
-            ready.value = true;
-            emit("mapReady", { map: map.value, api: api.value });
-          }
+    onMounted(() => {
+      // Only run this in a browser env since it needs to use the `document` object
+      // and would error out in a node env (i.e. vitepress/vuepress SSR)
+      if (typeof window !== "undefined") {
+        const options = {
+          apiKey: !props.debug ? props.apiKey : '',
+          version: props.version || '3.41',
+          libraries: props.libraries || ['places'],
+          language: props.language || 'en'
         }
-      });
-    }
+        const loader = new Loader(options);
+
+        loader.load().then(() => {
+          // 如果已存在地图实例且不生成新实例，则仍然操作单例
+          if (window[window.$simpleMapInstanceKey] && window.$simpleMapDom && !props.newMap) {
+            const dom = document.querySelector("#google-map");
+            dom.appendChild(window.$simpleMapDom);
+            window[window.$simpleMapInstanceKey].setOptions(resolveOptions());
+            map.value = window[window.$simpleMapInstanceKey];
+            api.value = window.$simpleMapApi;
+            emit("mapReady", { map: window[window.$simpleMapInstanceKey], api: window.$simpleMapApi });
+            console.log("复用地图实例");
+          } else {
+            // 如果不生成新实例，则生成新的单例
+            if(!props.newMap){
+              window.$simpleMapInstanceKey = props.mapInstance
+              const { Map } = (window.$simpleMapApi = google.maps);
+              window[window.$simpleMapInstanceKey] = new Map(document.querySelector("#google-map"), resolveOptions());
+              const dom = document.querySelector("#google-map").childNodes[0];
+              dom.style.overflow = "hidden";
+              window.$simpleMapDom = dom;
+              window.$simpleMarkerArray = {};
+              console.log("新单例地图初始化成功");
+              map.value = window[window.$simpleMapInstanceKey];
+              api.value = window.$simpleMapApi;
+              mapEvents.forEach((event) => {
+                window[window.$simpleMapInstanceKey]?.addListener(event, () => emit(event));
+              });
+
+              ready.value = true;
+              emit("mapReady", { map: window[window.$simpleMapInstanceKey], api: window.$simpleMapApi });
+            }else{
+              // 需要生成新的实例
+              const { Map } = (api.value = google.maps);
+              map.value = new Map(mapRef.value, resolveOptions());
+              console.log("新地图初始化成功");
+
+              mapEvents.forEach((event) => {
+                map.value?.addListener(event, () => emit(event));
+              });
+
+              ready.value = true;
+              emit("mapReady", { map: map.value, api: api.value });
+            }
+          }
+        });
+      }
+    })
 
     return { mapRef, ready, map, api, resetMap };
   },

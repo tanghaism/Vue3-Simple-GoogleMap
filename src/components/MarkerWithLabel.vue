@@ -35,8 +35,8 @@
       provide('$marker', { marker })
 
       const createMarker = (trigger) => {
-        const _mapInstance = newMap ? map.value : window[window.$easiMapInstanceKey];
-        const _api = newMap ? api.value : window.$easiMapApi;
+        const _mapInstance = newMap ? map.value : window[window.$simpleMapInstanceKey];
+        const _api = newMap ? api.value : window.$simpleMapApi;
         if (_mapInstance && _api) {
           if (context.slots.labelContent && context.slots.labelContent.length === 1 && context.slots.labelContent[0]) {
             options.value = Object.assign({}, options.value, { labelContent: markerRef.value })
@@ -50,10 +50,10 @@
             _component && _component.addListener(event, (el) => context.emit(event, el, marker.value, index.value))
           })
           if(!newMap){
-            if (window.$easiMarkerArray.MarkerWithLabel) {
-              window.$easiMarkerArray.MarkerWithLabel.push(_component)
+            if (window.$simpleMarkerArray.MarkerWithLabel) {
+              window.$simpleMarkerArray.MarkerWithLabel.push(_component)
             } else {
-              window.$easiMarkerArray.MarkerWithLabel = [_component]
+              window.$simpleMarkerArray.MarkerWithLabel = [_component]
             }
           }
         }
@@ -62,7 +62,7 @@
       const removeMarker = () => {
         if (_component) {
           if(!newMap){
-            window?.$easiMarkerArray?.MarkerWithLabel?.length > 0 && window?.$easiMarkerArray?.MarkerWithLabel.splice(index, 1)
+            window?.$simpleMarkerArray?.MarkerWithLabel?.length > 0 && window?.$simpleMarkerArray?.MarkerWithLabel.splice(index, 1)
           }
           api.value?.event.clearInstanceListeners(_component);
           _component?.setMap(null)

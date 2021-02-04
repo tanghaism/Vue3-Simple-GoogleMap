@@ -63,8 +63,8 @@
       })
 
       const createInfoWindow = (trigger) => {
-        const _instance = newMap ? map.value : window[window.$easiMapInstanceKey];
-        const _api = newMap ? api.value : window.$easiMapApi;
+        const _instance = newMap ? map.value : window[window.$simpleMapInstanceKey];
+        const _api = newMap ? api.value : window.$simpleMapApi;
         if (_instance && _api && $marker.marker) {
           closeInfoWindow()
           marker.value = toRaw($marker.marker)
