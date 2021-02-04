@@ -1,4 +1,4 @@
-# Vue3-Google-Map
+# Vue3-Simple-GoogleMap
 Web端谷歌地图组件，实现单例模式与多例模式并存，支持多地图同时展示（多例模式）
 
 > 已内置[MarkerWithLabel组件](https://github.com/jesstelford/node-MarkerWithLabel);
