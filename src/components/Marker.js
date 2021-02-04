@@ -1,4 +1,4 @@
-import {defineComponent, toRefs, toRaw, inject, ref, reactive} from 'vue'
+import {defineComponent, toRefs, toRaw, inject, ref} from 'vue'
 import { useSetupMapComponent } from '../utils/useMapComponents'
 import { markerEvents } from '../utils/events'
 

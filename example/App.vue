@@ -9,18 +9,7 @@
     <div v-if="showMap">
       <GoogleMap
         ref="mapRef"
-        api-key=""
         :center="{ lat: -37.846382, lng: 145.068663 }"
-        :zoom="11"
-        :disableDefaultUI="true"
-        :scrollwheel="true"
-        :zoomControl="true"
-        :scaleControl="false"
-        :rotateControl="false"
-        :panControl="false"
-        :mapTypeControl="false"
-        :streetViewControl="false"
-        :fullscreenControl="true"
         @mapReady="onMapReady"
         style="height: 600px">
         <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker" :key="index" >
@@ -40,18 +29,7 @@
     <div v-else>
       <GoogleMap
         ref="mapRef1"
-        api-key=""
         :center="{ lat: -37.846382, lng: 145.068663 }"
-        :zoom="11"
-        :disableDefaultUI="true"
-        :scrollwheel="true"
-        :zoomControl="true"
-        :scaleControl="false"
-        :rotateControl="false"
-        :panControl="false"
-        :mapTypeControl="false"
-        :streetViewControl="false"
-        :fullscreenControl="true"
         style="height: 600px">
         <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker1" :key="index" >
           <template #labelContent>
@@ -75,16 +53,6 @@
           api-key=""
           :newMap="true"
           :center="{ lat: -37.846382, lng: 145.068663 }"
-          :zoom="11"
-          :disableDefaultUI="true"
-          :scrollwheel="true"
-          :zoomControl="true"
-          :scaleControl="false"
-          :rotateControl="false"
-          :panControl="false"
-          :mapTypeControl="false"
-          :streetViewControl="false"
-          :fullscreenControl="true"
           @mapReady="onMapReady"
           style="height: 600px">
           <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker" :key="index" >
@@ -107,16 +75,6 @@
           api-key=""
           :newMap="true"
           :center="{ lat: -37.846382, lng: 145.068663 }"
-          :zoom="11"
-          :disableDefaultUI="true"
-          :scrollwheel="true"
-          :zoomControl="true"
-          :scaleControl="false"
-          :rotateControl="false"
-          :panControl="false"
-          :mapTypeControl="false"
-          :streetViewControl="false"
-          :fullscreenControl="true"
           style="height: 600px">
           <MarkerWithLabel :options="item" :index="index" @click="handleClick" v-for="(item, index) in marker1" :key="index" >
             <template #labelContent>

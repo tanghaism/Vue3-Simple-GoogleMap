@@ -24,10 +24,10 @@ export const useSetupMapComponent = (
         _component?.addListener(event, (el) => emit(event, el, _component, index))
       })
       if(!newMap){
-        if (window.$markerArray[componentName]) {
-          window.$markerArray[componentName].push(_component)
+        if (window.$easiMarkerArray[componentName]) {
+          window.$easiMarkerArray[componentName].push(_component)
         } else {
-          window.$markerArray[componentName] = [_component]
+          window.$easiMarkerArray[componentName] = [_component]
         }
       }
     }
@@ -44,7 +44,7 @@ export const useSetupMapComponent = (
   onBeforeUnmount(() => {
     if (_component) {
       if(!newMap){
-        window?.$markerArray[componentName]?.length > 0 && window?.$markerArray[componentName]?.splice(index, 1)
+        window?.$easiMarkerArray[componentName]?.length > 0 && window?.$easiMarkerArray[componentName]?.splice(index, 1)
       }
       api.value?.event.clearInstanceListeners(_component);
       _component?.setMap(null)

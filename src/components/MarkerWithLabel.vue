@@ -8,7 +8,7 @@
 </template>
 
 <script>
-  import {ref, toRefs, provide, onMounted, onBeforeUnmount, inject, reactive} from 'vue'
+  import {ref, toRefs, provide, onMounted, onBeforeUnmount, inject} from 'vue'
   import markerWithLabelFunc from 'markerwithlabel'
   import { markerEvents } from '../utils/events'
   export default {
@@ -35,8 +35,8 @@
       provide('$marker', { marker })
 
       const createMarker = (trigger) => {
-        const _mapInstance = newMap ? map.value : window.$mapInstance;
-        const _api = newMap ? api.value : window.$mapApi;
+        const _mapInstance = newMap ? map.value : window[window.$easiMapInstanceKey];
+        const _api = newMap ? api.value : window.$easiMapApi;
         if (_mapInstance && _api) {
           if (context.slots.labelContent && context.slots.labelContent.length === 1 && context.slots.labelContent[0]) {
             options.value = Object.assign({}, options.value, { labelContent: markerRef.value })
@@ -50,10 +50,10 @@
             _component && _component.addListener(event, (el) => context.emit(event, el, marker.value, index.value))
           })
           if(!newMap){
-            if (window.$markerArray.MarkerWithLabel) {
-              window.$markerArray.MarkerWithLabel.push(_component)
+            if (window.$easiMarkerArray.MarkerWithLabel) {
+              window.$easiMarkerArray.MarkerWithLabel.push(_component)
             } else {
-              window.$markerArray.MarkerWithLabel = [_component]
+              window.$easiMarkerArray.MarkerWithLabel = [_component]
             }
           }
         }
@@ -62,7 +62,7 @@
       const removeMarker = () => {
         if (_component) {
           if(!newMap){
-            window?.$markerArray?.MarkerWithLabel?.length > 0 && window?.$markerArray?.MarkerWithLabel.splice(index, 1)
+            window?.$easiMarkerArray?.MarkerWithLabel?.length > 0 && window?.$easiMarkerArray?.MarkerWithLabel.splice(index, 1)
           }
           api.value?.event.clearInstanceListeners(_component);
           _component?.setMap(null)

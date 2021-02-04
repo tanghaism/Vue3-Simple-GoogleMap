@@ -1,5 +1,5 @@
 <template>
-  <div ref="mapRef" v-bind="$attrs" class="map" :id="!newMap ? 'google-map' : ''">
+  <div ref="mapRef" v-bind="$attrs" class="map" :id="!newMap ? 'google-map' : ''" :style="{height: typeof height === 'number' ? (height + 'px') : height}">
     <div>
       <slot />
     </div>
@@ -15,29 +15,46 @@ export default {
   name: "google-map",
   emits: [...mapEvents, 'mapReady'],
   props: {
+    // 开启debug模式会导致apiKey失效，开启的好处是生成实例google不会扣费，但是部分功能不可用。建议本地开发时可以考虑开启。
+    debug: Boolean,
+    // 全局单例地图实例key, 默认值$easiMapInstance，初始化全局单例模式之后，此值不可改变。
+    // 如需要在业务组件内获取当前地图实例（单例或多例模式均可用），可监听map-ready事件: ({map, api}) => void
+    // map为地图实例，api为google.map对象
+    mapInstance: {
+      type: String,
+      default: '$easiMapInstance'
+    },
+    height: {
+      default: '600px',
+      type: [Number, String]
+    },
     apiKey: String,
     version: String,
-    libraries: [String ,Array],
+    libraries: Array,
     language: String,
+    // 是否生成新实例
     newMap: {
       type: Boolean,
       default: false
     },
     backgroundColor: String,
-    center: Object,
+    center: {
+      type: Object,
+      default:{ lat: 0, lng: 0 }
+    },
     clickableIcons: { type: Boolean, default: undefined },
     controlSize: Number,
-    disableDefaultUi: { type: Boolean, default: undefined },
+    disableDefaultUi: { type: Boolean, default: true },
     disableDoubleClickZoom: { type: Boolean, default: undefined },
     draggable: { type: Boolean, default: undefined },
     draggableCursor: String,
     draggingCursor: String,
-    fullscreenControl: { type: Boolean, default: undefined },
+    fullscreenControl: { type: Boolean, default: true },
     fullscreenControlPosition: String,
     gestureHandling: String,
     heading: Number,
     keyboardShortcuts: { type: Boolean, default: undefined },
-    mapTypeControl: { type: Boolean, default: undefined },
+    mapTypeControl: { type: Boolean, default: false },
     mapTypeControlOptions: Object,
     mapTypeId: {
       type: [Number, String],
@@ -45,21 +62,24 @@ export default {
     maxZoom: Number,
     minZoom: Number,
     noClear: { type: Boolean, default: undefined },
-    panControl: { type: Boolean, default: undefined },
+    panControl: { type: Boolean, default: false },
     panControlPosition: String,
     restriction: Object,
-    rotateControl: { type: Boolean, default: undefined },
+    rotateControl: { type: Boolean, default: false },
     rotateControlPosition: String,
-    scaleControl: { type: Boolean, default: undefined },
+    scaleControl: { type: Boolean, default: false },
     scaleControlStyle: Number,
-    scrollwheel: { type: Boolean, default: undefined },
+    scrollwheel: { type: Boolean, default: true },
     streetView: Object,
-    streetViewControl: { type: Boolean, default: undefined },
+    streetViewControl: { type: Boolean, default: false },
     streetViewControlPosition: String,
     styles: Array,
     tilt: Number,
-    zoom: Number,
-    zoomControl: { type: Boolean, default: undefined },
+    zoom: {
+      type: Number,
+      default: 11
+    },
+    zoomControl: { type: Boolean, default: true },
     zoomControlPosition: String,
   },
   setup(props, { emit }) {
@@ -130,7 +150,7 @@ export default {
         zoomControl: props.zoomControl,
         zoomControlOptions: props.zoomControlPosition
           ? {
-              position: window.$mapApi?.ControlPosition[props.zoomControlPosition],
+              position: window.$easiMapApi?.ControlPosition[props.zoomControlPosition],
             }
           : {},
       };
@@ -144,7 +164,8 @@ export default {
     onBeforeUnmount(() => {
       if (map.value) {
         if(!props.newMap){
-          window.$mapApi?.event.clearInstanceListeners(window.$mapInstance);
+          console.log()
+          window.$easiMapApi?.event.clearInstanceListeners(window[window.$easiMapInstanceKey]);
         }else{
           api.value?.event.clearInstanceListeners(map.value);
         }
@@ -153,21 +174,21 @@ export default {
 
     const resetMap = (clearAll = true) => {
       if(!props.newMap){
-        if (window.$mapInstance) {
-          Object.keys(window.$markerArray).forEach((componentsKey) => {
-            for (const marker of window.$markerArray[componentsKey]) {
+        if (window[window.$easiMapInstanceKey]) {
+          Object.keys(window.$easiMarkerArray).forEach((componentsKey) => {
+            for (const marker of window.$easiMarkerArray[componentsKey]) {
               try {
-                window.$mapApi.event.clearInstanceListeners(marker);
+                window.$easiMapApi.event.clearInstanceListeners(marker);
                 marker.setMap(null);
               } catch (e) {
                 console.warn(e);
               }
             }
-            delete window.$markerArray[componentsKey];
+            delete window.$easiMarkerArray[componentsKey];
           });
           if (clearAll) {
-            Object.keys(window.$mapApi.ControlPosition).forEach((position) => {
-              window.$mapInstance.controls[window.$mapApi.ControlPosition[position]].clear();
+            Object.keys(window.$easiMapApi.ControlPosition).forEach((position) => {
+              window[window.$easiMapInstanceKey].controls[window.$easiMapApi.ControlPosition[position]].clear();
             });
           }
         }
@@ -178,45 +199,46 @@ export default {
     // and would error out in a node env (i.e. vitepress/vuepress SSR)
     if (typeof window !== "undefined") {
       const loader = new Loader({
-        apiKey: props.apiKey,
-        version: '3.41',
-        libraries: ['places'],
+        apiKey: !props.debug ? props.apiKey : '',
+        version: props.version || '3.41',
+        libraries: props.libraries || ['places'],
         language: props.language || 'en'
       });
 
       loader.load().then(() => {
         // 如果已存在地图实例且不生成新实例，则仍然操作单例
-        if (window.$mapInstance && window.$mapDom && !props.newMap) {
+        if (window[window.$easiMapInstanceKey] && window.$easiMapDom && !props.newMap) {
           const dom = document.querySelector("#google-map");
-          dom.appendChild(window.$mapDom);
-          window.$mapInstance.setOptions(resolveOptions());
-          map.value = window.$mapInstance;
-          api.value = window.$mapApi;
-          emit("mapReady", { map: window.$mapInstance, api: window.$mapApi });
+          dom.appendChild(window.$easiMapDom);
+          window[window.$easiMapInstanceKey].setOptions(resolveOptions());
+          map.value = window[window.$easiMapInstanceKey];
+          api.value = window.$easiMapApi;
+          emit("mapReady", { map: window[window.$easiMapInstanceKey], api: window.$easiMapApi });
           console.log("复用地图实例");
         } else {
           // 如果不生成新实例，则生成新的单例
           if(!props.newMap){
-            const { Map } = (window.$mapApi = google.maps);
-            window.$mapInstance = new Map(document.querySelector("#google-map"), resolveOptions());
+            window.$easiMapInstanceKey = props.mapInstance
+            const { Map } = (window.$easiMapApi = google.maps);
+            window[window.$easiMapInstanceKey] = new Map(document.querySelector("#google-map"), resolveOptions());
             const dom = document.querySelector("#google-map").childNodes[0];
             dom.style.overflow = "hidden";
-            window.$mapDom = dom;
-            window.$markerArray = {};
-            console.log("地图初始化成功");
-            map.value = window.$mapInstance;
-            api.value = window.$mapApi;
+            window.$easiMapDom = dom;
+            window.$easiMarkerArray = {};
+            console.log("新单例地图初始化成功");
+            map.value = window[window.$easiMapInstanceKey];
+            api.value = window.$easiMapApi;
             mapEvents.forEach((event) => {
-              window.$mapInstance?.addListener(event, () => emit(event));
+              window[window.$easiMapInstanceKey]?.addListener(event, () => emit(event));
             });
 
             ready.value = true;
-            emit("mapReady", { map: window.$mapInstance, api: window.$mapApi });
+            emit("mapReady", { map: window[window.$easiMapInstanceKey], api: window.$easiMapApi });
           }else{
             // 需要生成新的实例
             const { Map } = (api.value = google.maps);
             map.value = new Map(mapRef.value, resolveOptions());
-            console.log("地图初始化成功");
+            console.log("新地图初始化成功");
 
             mapEvents.forEach((event) => {
               map.value?.addListener(event, () => emit(event));
